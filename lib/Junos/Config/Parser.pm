@@ -118,6 +118,52 @@ sub parse {
     return %details;
 }
 
-
-
 1;
+
+__END__
+
+=head1 NAME
+
+Junos::Config::Parser - Quick 'n Dirty Junos Configuration (File) Parser
+
+=head1 SYNOPSIS
+
+my $parser = Junos::Config::Parser->new('filename' => 'server_junos.conf');
+my %details = $parser->parse();
+
+my $interfaces = $details{'interfaces'};
+    if ($interfaces->{'vlan'}) {
+        for my $vlan_id (keys %{$interfaces->{'vlan'}->{'unit'} || {}}) {
+            if ($vlan_id !~ /^\d+$/) {
+                next;
+            }
+
+# I SAID quick 'n dirty...'
+            if (ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}) and
+                ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}) and
+                ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}) and
+                $interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}->{'address'}) {
+
+                my $address = $interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}->{'address'};
+
+                # ... etc
+
+=head1 DESCRIPTION
+
+This package is simply meant as a quick way to parse a Junos config file in
+order to access certain values that are stored within the configuration. It was
+built due to the seeming inability to send XML or JSON versions of a Junos
+configuration when using the "archival" feature to automatically send a
+config to a remote host on commit or a specified interval
+(https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/archival-edit-system.html).
+If you _are_ able to reasonably gain access to the XML or JSON versions of
+your Junos config, I would use those instead.
+
+The synopsis above should tell you everything you need to know about how
+to use this package. Simple build an object with a 'filename' arg in the
+constructor, then call the parse method to retrieve a hash of the parsed
+config.
+
+=head1 AUTHOR(S)
+
+Dan Thomson <dan@fatmoustache.ca>
