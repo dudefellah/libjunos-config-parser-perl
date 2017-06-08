@@ -128,25 +128,25 @@ Junos::Config::Parser - Quick 'n Dirty Junos Configuration (File) Parser
 
 =head1 SYNOPSIS
 
-my $parser = Junos::Config::Parser->new('filename' => 'server_junos.conf');
-my %details = $parser->parse();
+ my $parser = Junos::Config::Parser->new('filename' => 'server_junos.conf');
+ my %details = $parser->parse();
 
-my $interfaces = $details{'interfaces'};
-    if ($interfaces->{'vlan'}) {
-        for my $vlan_id (keys %{$interfaces->{'vlan'}->{'unit'} || {}}) {
-            if ($vlan_id !~ /^\d+$/) {
-                next;
-            }
+ my $interfaces = $details{'interfaces'};
+ if ($interfaces->{'vlan'}) {
+    for my $vlan_id (keys %{$interfaces->{'vlan'}->{'unit'} || {}}) {
+        if ($vlan_id !~ /^\d+$/) {
+            next;
+        }
 
-# I SAID quick 'n dirty...'
-            if (ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}) and
-                ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}) and
-                ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}) and
-                $interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}->{'address'}) {
+ # I SAID quick 'n dirty...'
+        if (ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}) and
+            ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}) and
+            ref($interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}) and
+            $interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}->{'address'}) {
 
-                my $address = $interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}->{'address'};
+            my $address = $interfaces->{'vlan'}->{'unit'}->{$vlan_id}->{'family'}->{'inet'}->{'address'};
 
-                # ... etc
+            # ... etc
 
 =head1 DESCRIPTION
 
