@@ -49,9 +49,25 @@ sub _parse_section {
             $logger->debug("[$name] no value details{$1} = 1");
             $details{$1} = 1;
         }
+        elsif ($l =~ /^\s*([\w\-\/]+)\s+\[([^\]]+)\]/) {
+            my ($key, $array_str) = ($1, $2);
+            my @array = split(/\s+/, $array_str);
+            $details{$key} = \@array;
+        }
         elsif ($l =~ /^\s*(.+)\s+([^\{\}]+);$/) {
-            $logger->debug("[$name] Details{$1} = $2");
-            $details{$1} = $2;
+            my ($key, $val) = ($1, $2);
+            $logger->debug("[$name] Details{$key} = $val");
+            $logger->debug("[$name} Existing: " . (defined($details{$key}) ? $details{$key} : "*undefined*"));
+            if (defined($details{$key}) and ref($details{$key})) {
+                $details{$key}->{$val} = 1;
+            }
+            elsif (defined($details{$key}) and not ref($details{$key})) {
+                my $prev_detail = $details{$key};
+                $details{$key} = {$prev_detail => 1, $val => 1};
+            }
+            else {
+                $details{$key} = $val;
+            }
         }
         elsif ($l =~ /^\s*(.+)\s+\{\s*$/) {
             my $key = $1;
@@ -64,7 +80,7 @@ sub _parse_section {
                 $subsection_name = $key_fields[1];
             }
 
-            if ($subsection_name) {
+            if (defined($subsection_name)) {
                 $logger->debug("[$name] PREPARE SUBSECTION ($subsection_name)");
                 my %subsec = $self->_parse_section($subsection_name, $lines);
                 $logger->debug("[$name] $section_name - SUBSECTION: ${subsection_name} = " . Dumper(\%subsec));
@@ -82,6 +98,10 @@ sub _parse_section {
                 $logger->debug("PREPARE SECTION $section_name");
                 my %section = $self->_parse_section($section_name, $lines);
                 $logger->debug("[$name] Section{$section_name} = " . Dumper(\%section));
+
+                if (defined($details{$section_name})) {
+                    %section = (%{$details{$section_name}}, %section);
+                }
                 $details{$section_name} = \%section;
             }
         }
